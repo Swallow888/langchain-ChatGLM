@@ -105,6 +105,7 @@ def generate_prompt(related_docs: List[str],
                     prompt_template: str = PROMPT_TEMPLATE, ) -> str:
     context = "\n".join([doc.page_content for doc in related_docs])
     prompt = prompt_template.replace("{question}", query).replace("{context}", context)
+    print(f"prompt={prompt}")
     return prompt
 
 
@@ -230,8 +231,13 @@ class LocalDocQA:
         vector_store.score_threshold = self.score_threshold
         related_docs_with_score = vector_store.similarity_search_with_score(query, k=self.top_k)
         torch_gc()
+        isStatQuery = query.find("统计") != -1
+        if isStatQuery :
+            promptTemplate = STAT_PROMPT_TEMPLATE
+        else:
+            promptTemplate = PROMPT_TEMPLATE
         if len(related_docs_with_score) > 0:
-            prompt = generate_prompt(related_docs_with_score, query)
+            prompt = generate_prompt(related_docs_with_score, query,promptTemplate)
         else:
             prompt = query
 
